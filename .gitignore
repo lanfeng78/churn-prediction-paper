@@ -1,0 +1,20 @@
+# 原始数据体积较大（约 91 MB），不入库，请运行 data/download_data.py 获取
+data/retail_ii.csv
+data/ori.zip
+data/*.zip
+data/retail_ii*.csv
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 过程产物
+/tmp/
+*.log
