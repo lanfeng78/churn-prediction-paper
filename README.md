@@ -5,6 +5,7 @@
 - 作者：申奥（SHEN Ao），华南师范大学 数据科学与工程学院，23 级大数据 2 班
 - 学号：20238131012　指导教师：陈纪龙
 - 论文题目：基于双窗口行为特征与集成学习的电商客户流失预测
+- 交付日期：2026-11-13
 
 ## 研究概要
 
@@ -13,12 +14,27 @@
 Online Retail II 的 1 067 371 条真实交易记录上提取 7 组 31 维行为特征，比较
 逻辑回归、随机森林、直方图梯度提升、XGBoost、LightGBM 与堆叠集成，并完成
 Optuna 调参、不平衡处理、特征消融、跨期泛化、概率校准、预算约束收益、
-SHAP 解释与客群分层等 9 组实验。
+SHAP 解释与客群分层等 9 组实验。全部数值均由本仓库脚本真实运行产生，未作任何修饰。
+
+## 仓库内容
+
+| 路径 | 说明 |
+|---|---|
+| `code/build_dataset.py` | 清洗漏斗、双窗口样本构造、31 维特征提取 |
+| `code/model.py` | Optuna 调参、五折 OOF 堆叠、留出集评估、DeLong 检验、跨期与代价敏感分析 |
+| `code/analysis.py` | CV 口径消融、固定预算收益曲线、SHAP 与置换重要性 |
+| `code/figs.py` | 论文全部 15 幅灰度插图（单栏 8 cm、600 dpi） |
+| `data/download_data.py` | 原始数据下载脚本（Hugging Face 镜像） |
+| `requirements.txt` | 实测通过的依赖版本 |
+
+`results/`、`figs/`、`data/cohort*.csv` 与论文 docx 均为运行产物，体积较大（合计约 6 MB，含 600 dpi 位图与 Word 二进制），
+不直接入库，运行下面四步即可原地生成。论文排版脚本 `build_paper.py` 依赖本地字体模板与这些二进制图件，
+一并收录在同名资料包 `数据科学综合实验_完整资料包.zip` 中。
 
 ## 数据
 
-原始数据来自 UCI Machine Learning Repository 的 **Online Retail II**（公开数据集），
-本仓库不附带 91 MB 原始 CSV，请先执行：
+原始数据来自 UCI Machine Learning Repository 的 **Online Retail II**（公开数据集，
+1 067 371 行 / 5 942 名可识别客户 / 2009-12-01—2011-12-09），本仓库不附带 91 MB 原始 CSV，请先执行：
 
 ```bash
 python data/download_data.py     # 下载到 data/retail_ii.csv
@@ -33,10 +49,11 @@ pip install -r requirements.txt
 
 python code/build_dataset.py   # 清洗 + 双窗口样本 + 31 维特征 -> data/cohort*.csv
 python code/model.py           # Optuna 调参、五折堆叠、留出集评估 -> results/metrics.json
-python code/analysis.py        # 消融/跨期/校准/代价收益/分层 -> results/analysis2.json
+python code/analysis.py        # 消融/预算收益/SHAP/置换重要性 -> results/analysis2.json
 python code/figs.py            # 15 幅灰度插图 -> figs/
-python code/build_paper.py     # 按附件格式生成 Word -> 论文 docx
 ```
+
+随机种子固定为 42；环境为 Python 3.12 + scikit-learn 1.9.1 + XGBoost 3.4.1 + LightGBM 4.7.0。
 
 ## 主要结果（均来自实际运行）
 
@@ -50,19 +67,14 @@ python code/build_paper.py     # 按附件格式生成 Word -> 论文 docx
 | 堆叠集成 | 0.753 6 | 0.718 0~0.788 5 | 0.676 1 | 0.400 5 | 0.200 3 |
 
 样本：主样本 2 327 名客户（1 628 / 699 训练测试切分），流失率 43.36%；
-对照样本 2 037 名客户，流失率 29.46%。
+对照样本 2 037 名客户，流失率 29.46%。清洗漏斗：1 067 371 → 797 813 行有效记录。
 
-其他结论：趋势类特征单独使用即可达 AUC 0.771 5；10% 触达预算下命中率
-74.29%、相对随机提升 1.71 倍；跨期 AUC 下降 0.03~0.06，主因是基率漂移。
+其他结论：
 
-## 目录结构
-
-```
-code/       建模与出图脚本（build_dataset / model / analysis / figs / build_paper）
-data/       数据下载脚本与派生样本（原始 CSV 不入库）
-results/    指标 JSON、重要度 CSV 等可核查结果
-figs/       论文 15 幅灰度插图
-```
+- 趋势类特征单独使用即可达 AUC 0.771 5，全特征为 0.775 6，静态 RFM 的信息可被时间加权特征部分替代；
+- 10% 触达预算下命中率 74.29%、相对随机提升 1.71 倍，期望净收益由 2 569 元升至 6 900 元；
+- 跨期 AUC 下降 0.03~0.06，主因是基率从 29.46% 漂移至 43.36%；
+- SHAP 前三为近三月订单数（0.368）、累计金额（0.322）、最近购买间隔（0.198）。
 
 ## 许可
 
